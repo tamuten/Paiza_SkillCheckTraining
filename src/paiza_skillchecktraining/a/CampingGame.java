@@ -4,9 +4,9 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 /**
- * Piazaスキルチェック練習問題：陣取りゲーム
+ * Paizaスキルチェック練習問題：陣取りゲーム
  *
- * @author takashi
+ * @author
  *
  */
 public class CampingGame {
@@ -14,46 +14,43 @@ public class CampingGame {
 		new CampingGame().executeCampingGame();
 	}
 
-	/**
-	 * プレイヤー定数
-	 *
-	 * @author takashi
-	 *
-	 */
-	private static enum Player {
-		A('A'), B('B');
+	private enum Player {
+		A('A', 0), B('B', 0);
 
-		/**
-		 * プレイヤー交代
-		 *
-		 * @return
-		 */
 		Player next() {
 			return values()[(ordinal() + 1) % Player.values().length];
 		}
 
-		private final char c;
+		private final char key;
+		private int score;
 
-		private Player(final char c) {
-			this.c = c;
+		private Player(final char key, final int score) {
+			this.key = key;
+			this.score = score;
 		}
 
-		private char getchar() {
-			return this.c;
+		private char getKey() {
+			return this.key;
+		}
+
+		private int getScore() {
+			return this.score;
 		}
 
 		private static Player getValue(char key) {
 			return Arrays.stream(Player.values())
-					.filter(data -> data.getchar() == key)
+					.filter(data -> data.getKey() == key)
 					.findFirst()
 					.orElse(null);
 		}
+
 	}
 
 	private char[][] field;
 	private int height;
 	private int width;
 	private Player player;
+	/** 陣地取得処理用のコピーフィールド */
 	private char[][] clone;
 
 	/**
@@ -69,8 +66,9 @@ public class CampingGame {
 		clone = new char[height][width];
 		sc.nextLine();
 
-		String firstPlayer = sc.nextLine();
-		player = firstPlayer.equals("A") ? Player.A : Player.B;
+		char firstPlayer = sc.nextLine().charAt(0);
+
+		player = Arrays.stream(Player.values()).filter(p -> p.getKey() == firstPlayer).findFirst().orElse(null);
 
 		for (int i = 0; i < height; i++) {
 			field[i] = sc.next().toCharArray();
@@ -95,6 +93,7 @@ public class CampingGame {
 			for (int i = 0; i < height; i++) {
 				System.out.println(String.valueOf(field[i]));
 			}
+			System.out.println();
 		}
 
 		int a = 0;
@@ -120,19 +119,40 @@ public class CampingGame {
 		}
 		System.out.println(a + " " + b);
 		System.out.println(a > b ? "A" : "B");
-
 	}
 
+	/**
+	 * 陣地取得処理
+	 * 取れたかどうかの真偽値を返却
+	 *
+	 * @return
+	 */
 	private boolean camp() {
 		boolean couldCamp = false;
 		deepCopy(field, clone);
 		for (int i = 0; i < height; i++) {
 			for (int j = 0; j < width; j++) {
-				if (field[i][j] == player.getchar()) {
-					couldCamp = getCamp(i - 1, j); // 上
-					couldCamp = getCamp(i, j + 1); // 右
-					couldCamp = getCamp(i + 1, j); // 下
-					couldCamp = getCamp(i, j - 1); // 左
+				if (field[i][j] == player.getKey()) {
+					if (canGetCamp(i - 1, j)) {
+						couldCamp = true; // 上
+						getCamp(i - 1, j);
+					}
+
+					if (canGetCamp(i, j + 1)) {
+						couldCamp = true; // 右
+						getCamp(i, j + 1);
+					}
+
+					if (canGetCamp(i + 1, j)) {
+						couldCamp = true; // 下
+						getCamp(i + 1, j);
+					}
+
+					if (canGetCamp(i, j - 1)) {
+						couldCamp = true; // 左
+						getCamp(i, j - 1);
+					}
+
 				}
 			}
 		}
@@ -140,13 +160,26 @@ public class CampingGame {
 		return couldCamp;
 	}
 
+	/**
+	 * フィールドの2次元配列をディープコピーする
+	 *
+	 * @param original
+	 * @param replica
+	 */
 	private void deepCopy(char[][] original, char[][] replica) {
 		for (int i = 0; i < height; i++) {
 			replica[i] = Arrays.copyOf(original[i], original[i].length);
 		}
 	}
 
-	private boolean getCamp(int line, int col) {
+	/**
+	 * 陣地が取れるかどうか真偽値を返却
+	 *
+	 * @param line 縦の座標
+	 * @param col 横の座標
+	 * @return
+	 */
+	private boolean canGetCamp(int line, int col) {
 		if (line < 0 ||
 				line >= height ||
 				col < 0 ||
@@ -154,7 +187,16 @@ public class CampingGame {
 				field[line][col] != '.') {
 			return false;
 		}
-		clone[line][col] = player.getchar();
 		return true;
+	}
+
+	/**
+	 * 指定した座標を現プレイヤーの陣地とする
+	 *
+	 * @param line 縦の座標
+	 * @param col 横の座標
+	 */
+	private void getCamp(int line, int col) {
+		clone[line][col] = player.getKey();
 	}
 }
