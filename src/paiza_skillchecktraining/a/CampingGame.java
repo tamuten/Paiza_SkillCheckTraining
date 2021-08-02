@@ -1,6 +1,8 @@
 package paiza_skillchecktraining.a;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -11,7 +13,7 @@ import java.util.Scanner;
  */
 public class CampingGame {
 	public static void main(String[] args) {
-		new CampingGame().executeCampingGame();
+		new CampingGame().execute();
 	}
 
 	private enum Player {
@@ -39,24 +41,36 @@ public class CampingGame {
 
 		private static Player getValue(char key) {
 			return Arrays.stream(Player.values())
-					.filter(data -> data.getKey() == key)
-					.findFirst()
-					.orElse(null);
+				.filter(data -> data.getKey() == key)
+				.findFirst()
+				.orElse(null);
 		}
 
 	}
 
-	private char[][] field;
-	private int height;
-	private int width;
-	private Player player;
+	char[][] field;
+	List<List<Point>> aPoints = new ArrayList<>();
+	List<List<Point>> bPoints = new ArrayList<>();
+	int height;
+	int width;
+	Player player;
 	/** 陣地取得処理用のコピーフィールド */
 	private char[][] clone;
 
-	/**
-	 * 処理開始
-	 */
-	public void executeCampingGame() {
+	boolean aCanCamp() {
+		return aPoints.size() > 0;
+	}
+
+	boolean bCanCamp() {
+		return bPoints.size() > 0;
+	}
+
+	void pointsDelete() {
+		aPoints.clear();
+		bPoints.clear();
+	}
+
+	void execute() {
 
 		// 標準入力を読み込む
 		Scanner sc = new Scanner(System.in);
@@ -66,20 +80,29 @@ public class CampingGame {
 		clone = new char[height][width];
 		sc.nextLine();
 
-		char firstPlayer = sc.nextLine().charAt(0);
+		char firstPlayer = sc.nextLine()
+			.charAt(0);
 
-		player = Arrays.stream(Player.values()).filter(p -> p.getKey() == firstPlayer).findFirst().orElse(null);
+		player = Arrays.stream(Player.values())
+			.filter(p -> p.getKey() == firstPlayer)
+			.findFirst()
+			.orElse(null);
 
 		for (int i = 0; i < height; i++) {
-			field[i] = sc.next().toCharArray();
+			field[i] = sc.next()
+				.toCharArray();
 		}
 
 		sc.close();
 
 		// 処理を開始する
 		int cannotCampCnt = 0;
+		int turnCnt = 0;
+		int turn = 0;
 		while (true) {
-			boolean couldCamp = camp();
+			turnCnt++;
+			List<Point> pointList = player == Player.A ? aPoints.get(turn) : bPoints.get(turn);
+			boolean couldCamp = pointList.size() > 0;
 			if (!couldCamp) {
 				cannotCampCnt++;
 				// 2人とも陣が取れなくなったら終了
@@ -89,31 +112,46 @@ public class CampingGame {
 			} else {
 				cannotCampCnt = 0;
 			}
-			player = player.next();
-			for (int i = 0; i < height; i++) {
-				System.out.println(String.valueOf(field[i]));
+			//			pointsDelete();
+
+			camp(pointList, turn);
+
+			if (turnCnt == 2) {
+				turn++;
+				turnCnt = 0;
 			}
-			System.out.println();
+			player = player.next();
+			//			for (int i = 0; i < height; i++) {
+			//				System.out.println(String.valueOf(field[i]));
+			//			}
+			//			System.out.println();
+
 		}
 
 		int a = 0;
 		int b = 0;
 		for (int i = 0; i < height; i++) {
-			System.out.println(String.valueOf(field[i]));
+			//			System.out.println(String.valueOf(field[i]));
 			for (int j = 0; j < width; j++) {
-				Player p = Player.getValue(field[i][j]);
-				if (p == null) {
-					continue;
-				}
-				switch (p) {
-				case A:
+				//				Player p = Player.getValue(field[i][j]);
+				//				if (p == null) {
+				//					continue;
+				//				}
+				//				switch (p) {
+				//				case A:
+				//					a++;
+				//					break;
+				//				case B:
+				//					b++;
+				//					break;
+				//				default:
+				//					break;
+				//				}
+				char camp = field[i][j];
+				if (camp == 'A') {
 					a++;
-					break;
-				case B:
+				} else if (camp == 'B') {
 					b++;
-					break;
-				default:
-					break;
 				}
 			}
 		}
@@ -127,38 +165,46 @@ public class CampingGame {
 	 *
 	 * @return
 	 */
-	private boolean camp() {
-		boolean couldCamp = false;
-		deepCopy(field, clone);
-		for (int i = 0; i < height; i++) {
-			for (int j = 0; j < width; j++) {
-				if (field[i][j] == player.getKey()) {
-					if (canGetCamp(i - 1, j)) {
-						couldCamp = true; // 上
-						getCamp(i - 1, j);
-					}
+	void camp(List<Point> pointList, int turn) {
+		//		boolean couldCamp = false;
+		//		deepCopy(field, clone);
+		//		for (int i = 0; i < height; i++) {
+		//			for (int j = 0; j < width; j++) {
+		//				if (field[i][j] == player.getKey()) {
+		//					if (canGetCamp(i - 1, j)) {
+		//						couldCamp = true; // 上
+		//						getCamp(i - 1, j);
+		//					}
+		//
+		//					if (canGetCamp(i, j + 1)) {
+		//						couldCamp = true; // 右
+		//						getCamp(i, j + 1);
+		//					}
+		//
+		//					if (canGetCamp(i + 1, j)) {
+		//						couldCamp = true; // 下
+		//						getCamp(i + 1, j);
+		//					}
+		//
+		//					if (canGetCamp(i, j - 1)) {
+		//						couldCamp = true; // 左
+		//						getCamp(i, j - 1);
+		//					}
 
-					if (canGetCamp(i, j + 1)) {
-						couldCamp = true; // 右
-						getCamp(i, j + 1);
-					}
+		//				}
+		//			}
+		//		List<Point> pointList = player == Player.A ? aPoints : bPoints;
+		pointList.forEach(p -> {
+			int i = p.x;
+			int j = p.y;
+			getCamp(i - 1, j, turn);
+			getCamp(i, j + 1, turn);
+			getCamp(i + 1, j, turn);
+			getCamp(i, j - 1, turn);
+		});
 
-					if (canGetCamp(i + 1, j)) {
-						couldCamp = true; // 下
-						getCamp(i + 1, j);
-					}
-
-					if (canGetCamp(i, j - 1)) {
-						couldCamp = true; // 左
-						getCamp(i, j - 1);
-					}
-
-				}
-			}
-		}
-		deepCopy(clone, field);
-		return couldCamp;
 	}
+	//		deepCopy(clone, field);
 
 	/**
 	 * フィールドの2次元配列をディープコピーする
@@ -179,7 +225,7 @@ public class CampingGame {
 	 * @param col 横の座標
 	 * @return
 	 */
-	private boolean canGetCamp(int line, int col) {
+	boolean canGetCamp(int line, int col) {
 		if (line < 0 ||
 				line >= height ||
 				col < 0 ||
@@ -196,7 +242,27 @@ public class CampingGame {
 	 * @param line 縦の座標
 	 * @param col 横の座標
 	 */
-	private void getCamp(int line, int col) {
-		clone[line][col] = player.getKey();
+	void getCamp(int line, int col, int turn) {
+		if (line < 0 ||
+				line >= height ||
+				col < 0 ||
+				col >= width ||
+				field[line][col] != '.') {
+			return;
+		}
+		field[line][col] = player.getKey();
+		List<List<Point>> pointList = player == Player.A ? aPoints : bPoints;
+
+	}
+
+	class Point {
+		int x;
+		int y;
+
+		Point(int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+
 	}
 }
