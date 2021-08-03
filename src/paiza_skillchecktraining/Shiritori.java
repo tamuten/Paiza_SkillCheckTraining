@@ -8,21 +8,18 @@ public class Shiritori {
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
 
-		int numOfPeaple = sc.nextInt();
-		int numOfWords = sc.nextInt();
-		int times = sc.nextInt();
+		int peapleNum = sc.nextInt();
+		int wordsNum = sc.nextInt();
+		int sayTimes = sc.nextInt();
 
 		//単語リストを作成
 		List<String> wordList = new ArrayList<String>();
-		for (int i = 0; i < numOfWords; i++) {
+		for (int i = 0; i < wordsNum; i++) {
 			wordList.add(sc.next());
 		}
 
 		//参加者リストの作成
-		boolean[] participant = new boolean[numOfPeaple + 1];
-		for (int i = 1; i < participant.length; i++) {
-			participant[i] = true;
-		}
+		boolean[] dropoutPeople = new boolean[peapleNum];
 
 		//		boolean[] sample = new boolean[2];
 		//		System.out.println(sample[0]);
@@ -30,26 +27,26 @@ public class Shiritori {
 
 		//ここから発言
 		int nowTime = 1;
-		int nowPeaple = 1;
+		int nowPeaple = 0;
 		int successCount = 0;
 
 		//発言された単語リスト
 		List<String> remarkedWordList = new ArrayList<String>();
 
-		while (nowTime <= times) {
+		while (nowTime <= sayTimes) {
 
-			//参加者リストの中でtrueの人だけに発言させる
-			if (participant[nowPeaple] == true) {
+			if (!dropoutPeople[nowPeaple]) {
 
 				//発言を取得
 				String remark = sc.next();
 
 				//単語リストに載っていない単語だった場合、falseにする
 				if (!wordList.contains(remark)) {
-					participant[nowPeaple] = false;
+					dropoutPeople[nowPeaple] = true;
+					// 次の人間へ
 					nowPeaple++;
-					if (nowPeaple == numOfPeaple + 1) {
-						nowPeaple = 1;
+					if (nowPeaple == peapleNum) {
+						nowPeaple = 0;
 					}
 					successCount = 0;
 					nowTime++;
@@ -63,9 +60,9 @@ public class Shiritori {
 					String lastRemark = remarkedWordList.get(remarkedWordList.size() - 1);
 
 					if (remark.charAt(0) != lastRemark.charAt(lastRemark.length() - 1)) {
-						participant[nowPeaple] = false;
+						dropoutPeople[nowPeaple] = false;
 						nowPeaple++;
-						if (nowPeaple == numOfPeaple + 1) {
+						if (nowPeaple == peapleNum + 1) {
 							nowPeaple = 1;
 						}
 						successCount = 0;
@@ -76,9 +73,9 @@ public class Shiritori {
 
 				//今までに発言された単語を発言した場合、falseにする
 				if (remarkedWordList.contains(remark)) {
-					participant[nowPeaple] = false;
+					dropoutPeople[nowPeaple] = false;
 					nowPeaple++;
-					if (nowPeaple == numOfPeaple + 1) {
+					if (nowPeaple == peapleNum + 1) {
 						nowPeaple = 1;
 					}
 					successCount = 0;
@@ -88,9 +85,9 @@ public class Shiritori {
 
 				//zで終わる単語を発言した場合、falseにする
 				if (remark.charAt(remark.length() - 1) == 'z') {
-					participant[nowPeaple] = false;
+					dropoutPeople[nowPeaple] = false;
 					nowPeaple++;
-					if (nowPeaple == numOfPeaple + 1) {
+					if (nowPeaple == peapleNum + 1) {
 						nowPeaple = 1;
 					}
 					successCount = 0;
@@ -108,15 +105,15 @@ public class Shiritori {
 
 			nowPeaple++;
 
-			if (nowPeaple == numOfPeaple + 1) {
+			if (nowPeaple == peapleNum + 1) {
 				nowPeaple = 1;
 			}
 			successCount++;
 		}
 
 		List<Integer> indexList = new ArrayList<Integer>();
-		for (int i = 1; i < participant.length; i++) {
-			if (participant[i] == true) {
+		for (int i = 1; i < dropoutPeople.length; i++) {
+			if (dropoutPeople[i] == true) {
 				indexList.add(i);
 			}
 		}
