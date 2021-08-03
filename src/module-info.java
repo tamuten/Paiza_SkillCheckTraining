@@ -1,2 +1,0 @@
-module paiza_skillCheckTraining {
-}
