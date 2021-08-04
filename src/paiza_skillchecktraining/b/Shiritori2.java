@@ -36,7 +36,8 @@ public class Shiritori2 {
 		}
 		sc.close();
 
-		System.out.println(booleanArrayToStream(dropOutPeople).filter(d -> !d).count());
+		System.out.println(booleanArrayToStream(dropOutPeople).filter(d -> !d)
+			.count());
 		for (int i = 0; i < peopleNum; i++) {
 			if (!dropOutPeople[i]) {
 				System.out.println(i + 1);
@@ -59,7 +60,8 @@ public class Shiritori2 {
 			return false;
 		}
 
-		if (!firstPeopleRemark && !remarkedWordList.get(remarkedWordList.size() - 1).endsWith(remark.substring(0, 1))) {
+		if (!firstPeopleRemark && !remarkedWordList.get(remarkedWordList.size() - 1)
+			.endsWith(remark.substring(0, 1))) {
 			return false;
 		}
 		return true;

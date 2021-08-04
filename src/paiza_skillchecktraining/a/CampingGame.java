@@ -2,73 +2,43 @@ package paiza_skillchecktraining.a;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Paizaスキルチェック練習問題：陣取りゲーム
- *
- * @author
- *
- */
 public class CampingGame {
 	public static void main(String[] args) {
 		new CampingGame().execute();
 	}
 
 	private enum Player {
-		A('A', 0), B('B', 0);
+		A('A'), B('B');
 
 		Player next() {
 			return values()[(ordinal() + 1) % Player.values().length];
 		}
 
 		private final char key;
-		private int score;
 
-		private Player(final char key, final int score) {
+		private Player(final char key) {
 			this.key = key;
-			this.score = score;
 		}
 
 		private char getKey() {
 			return this.key;
 		}
 
-		private int getScore() {
-			return this.score;
-		}
-
-		private static Player getValue(char key) {
-			return Arrays.stream(Player.values())
-				.filter(data -> data.getKey() == key)
-				.findFirst()
-				.orElse(null);
-		}
-
 	}
 
 	char[][] field;
-	List<List<Point>> aPoints = new ArrayList<>();
-	List<List<Point>> bPoints = new ArrayList<>();
 	int height;
 	int width;
 	Player player;
-	/** 陣地取得処理用のコピーフィールド */
-	private char[][] clone;
 
-	boolean aCanCamp() {
-		return aPoints.size() > 0;
-	}
-
-	boolean bCanCamp() {
-		return bPoints.size() > 0;
-	}
-
-	void pointsDelete() {
-		aPoints.clear();
-		bPoints.clear();
-	}
+	List<List<Point>> aPoints;
+	int aPointsPointer;
+	List<List<Point>> bPoints;
+	int bPointsPointer;
 
 	void execute() {
 
@@ -77,7 +47,6 @@ public class CampingGame {
 		height = sc.nextInt();
 		width = sc.nextInt();
 		field = new char[height][width];
-		clone = new char[height][width];
 		sc.nextLine();
 
 		char firstPlayer = sc.nextLine()
@@ -88,20 +57,38 @@ public class CampingGame {
 			.findFirst()
 			.orElse(null);
 
+		Point firstAPoint = null;
+		Point firstBPoint = null;
 		for (int i = 0; i < height; i++) {
 			field[i] = sc.next()
 				.toCharArray();
+			for (int j = 0; j < width; j++) {
+				if (field[i][j] == 'A') {
+					firstAPoint = new Point(i, j);
+				} else if (field[i][j] == 'B') {
+					firstBPoint = new Point(i, j);
+				}
+			}
 		}
 
 		sc.close();
+		aPoints = new ArrayList<>();
+		aPoints.add(new LinkedList<>());
+		aPoints.add(new LinkedList<>());
+		aPointsPointer = 0;
+		aPoints.get(aPointsPointer)
+			.add(firstAPoint);
+		bPoints = new ArrayList<>();
+		bPoints.add(new LinkedList<>());
+		bPoints.add(new LinkedList<>());
+		bPointsPointer = 0;
+		bPoints.get(bPointsPointer)
+			.add(firstBPoint);
 
 		// 処理を開始する
 		int cannotCampCnt = 0;
-		int turnCnt = 0;
-		int turn = 0;
 		while (true) {
-			turnCnt++;
-			List<Point> pointList = player == Player.A ? aPoints.get(turn) : bPoints.get(turn);
+			List<Point> pointList = player == Player.A ? aPoints.get(aPointsPointer) : bPoints.get(bPointsPointer);
 			boolean couldCamp = pointList.size() > 0;
 			if (!couldCamp) {
 				cannotCampCnt++;
@@ -112,41 +99,17 @@ public class CampingGame {
 			} else {
 				cannotCampCnt = 0;
 			}
-			//			pointsDelete();
 
-			camp(pointList, turn);
+			incrementPointer();
+			camp(pointList);
 
-			if (turnCnt == 2) {
-				turn++;
-				turnCnt = 0;
-			}
 			player = player.next();
-			//			for (int i = 0; i < height; i++) {
-			//				System.out.println(String.valueOf(field[i]));
-			//			}
-			//			System.out.println();
-
 		}
 
 		int a = 0;
 		int b = 0;
 		for (int i = 0; i < height; i++) {
-			//			System.out.println(String.valueOf(field[i]));
 			for (int j = 0; j < width; j++) {
-				//				Player p = Player.getValue(field[i][j]);
-				//				if (p == null) {
-				//					continue;
-				//				}
-				//				switch (p) {
-				//				case A:
-				//					a++;
-				//					break;
-				//				case B:
-				//					b++;
-				//					break;
-				//				default:
-				//					break;
-				//				}
 				char camp = field[i][j];
 				if (camp == 'A') {
 					a++;
@@ -165,75 +128,16 @@ public class CampingGame {
 	 *
 	 * @return
 	 */
-	void camp(List<Point> pointList, int turn) {
-		//		boolean couldCamp = false;
-		//		deepCopy(field, clone);
-		//		for (int i = 0; i < height; i++) {
-		//			for (int j = 0; j < width; j++) {
-		//				if (field[i][j] == player.getKey()) {
-		//					if (canGetCamp(i - 1, j)) {
-		//						couldCamp = true; // 上
-		//						getCamp(i - 1, j);
-		//					}
-		//
-		//					if (canGetCamp(i, j + 1)) {
-		//						couldCamp = true; // 右
-		//						getCamp(i, j + 1);
-		//					}
-		//
-		//					if (canGetCamp(i + 1, j)) {
-		//						couldCamp = true; // 下
-		//						getCamp(i + 1, j);
-		//					}
-		//
-		//					if (canGetCamp(i, j - 1)) {
-		//						couldCamp = true; // 左
-		//						getCamp(i, j - 1);
-		//					}
-
-		//				}
-		//			}
-		//		List<Point> pointList = player == Player.A ? aPoints : bPoints;
+	void camp(List<Point> pointList) {
 		pointList.forEach(p -> {
 			int i = p.x;
 			int j = p.y;
-			getCamp(i - 1, j, turn);
-			getCamp(i, j + 1, turn);
-			getCamp(i + 1, j, turn);
-			getCamp(i, j - 1, turn);
+			getCamp(i - 1, j);
+			getCamp(i, j + 1);
+			getCamp(i + 1, j);
+			getCamp(i, j - 1);
 		});
-
-	}
-	//		deepCopy(clone, field);
-
-	/**
-	 * フィールドの2次元配列をディープコピーする
-	 *
-	 * @param original
-	 * @param replica
-	 */
-	private void deepCopy(char[][] original, char[][] replica) {
-		for (int i = 0; i < height; i++) {
-			replica[i] = Arrays.copyOf(original[i], original[i].length);
-		}
-	}
-
-	/**
-	 * 陣地が取れるかどうか真偽値を返却
-	 *
-	 * @param line 縦の座標
-	 * @param col 横の座標
-	 * @return
-	 */
-	boolean canGetCamp(int line, int col) {
-		if (line < 0 ||
-				line >= height ||
-				col < 0 ||
-				col >= width ||
-				field[line][col] != '.') {
-			return false;
-		}
-		return true;
+		pointList.clear();
 	}
 
 	/**
@@ -242,7 +146,7 @@ public class CampingGame {
 	 * @param line 縦の座標
 	 * @param col 横の座標
 	 */
-	void getCamp(int line, int col, int turn) {
+	void getCamp(int line, int col) {
 		if (line < 0 ||
 				line >= height ||
 				col < 0 ||
@@ -251,8 +155,18 @@ public class CampingGame {
 			return;
 		}
 		field[line][col] = player.getKey();
-		List<List<Point>> pointList = player == Player.A ? aPoints : bPoints;
 
+		List<Point> pointList = player == Player.A ? aPoints.get(aPointsPointer) : bPoints.get(bPointsPointer);
+		pointList.add(new Point(line, col));
+
+	}
+
+	void incrementPointer() {
+		if (player == Player.A) {
+			aPointsPointer = (aPointsPointer + 1) % 2;
+		} else {
+			bPointsPointer = (bPointsPointer + 1) % 2;
+		}
 	}
 
 	class Point {
